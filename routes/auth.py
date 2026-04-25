@@ -1,5 +1,5 @@
 """
-Authentication routes for login, registration, and logout
+Authentication routes for login,registartion, and logout
 """
 
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
