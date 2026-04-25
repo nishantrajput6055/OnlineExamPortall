@@ -98,7 +98,7 @@
         </div>
     </nav>
 
-    <!-- flash messages-->
+    
     <div class="container mt-3">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -112,12 +112,12 @@
         {% endwith %}
     </div>
 
-    <!-- Main Content -->
+    
     <main>
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
+    
     <footer class="bg-dark text-white text-center py-4 mt-5">
         <div class="container">
             <p class="mb-0">&copy; 2025 Online Exam Portal. All rights reserved.</p>
