@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Exams - Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="section-header">
+        <h2><i class="fas fa-file-alt"></i> Manage Exams</h2>
+        <a href="{{ url_for('admin.create_exam') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Create New Exam
+        </a>
+    </div>
+
+    {% if exams %}
+        <div class="table-responsive">
+            <table class="table admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Exam Title</th>
+                        <th>Duration</th>
+                        <th>Marks</th>
+                        <th>Questions</th>
+                        <th>Attempts</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in exams %}
+                    <tr>
+                        <td>{{ exam.exam_id }}</td>
+                        <td>
+                            <strong>{{ exam.exam_title }}</strong>
+                            <div class="text-muted small">{{ exam.exam_description[:50] }}...</div>
+                        </td>
+                        <td>{{ exam.duration_minutes }} min</td>
+                        <td>{{ exam.total_marks }} (Pass: {{ exam.passing_marks }})</td>
+                        <td>
+                            <span class="badge bg-info">{{ exam.question_count }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">{{ exam.attempt_count }}</span>
+                        </td>
+                        <td>
+                            {% if exam.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="table-actions">
+                                <a href="{{ url_for('admin.manage_questions', exam_id=exam.exam_id) }}" 
+                                   class="btn btn-sm btn-primary" title="Manage Questions">
+                                    <i class="fas fa-list"></i>
+                                </a>
+                                <a href="{{ url_for('admin.edit_exam', exam_id=exam.exam_id) }}" 
+                                   class="btn btn-sm btn-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.delete_exam', exam_id=exam.exam_id) }}" 
+                                      style="display: inline;" class="delete-form">
+                                    <button type="submit" class="btn btn-sm btn-danger delete-btn" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h4>No Exams Created Yet</h4>
+            <p>Click the "Create New Exam" button to get started.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
