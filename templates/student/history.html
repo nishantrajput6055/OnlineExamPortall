@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Exam History{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="section-header">
+        <h2><i class="fas fa-history"></i> Your Exam History</h2>
+    </div>
+
+    {% if results %}
+        <div class="table-responsive">
+            <table class="table admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Exam Name</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Grade</th>
+                        <th>Status</th>
+                        <th>Time Taken</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td><strong>{{ result.exam_title }}</strong></td>
+                        <td>{{ result.score }}/{{ result.total_marks }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if result.percentage >= 75 else ('warning' if result.percentage >= 50 else 'danger') }}">
+                                {{ "%.1f"|format(result.percentage) }}%
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ result.grade }}</span>
+                        </td>
+                        <td>
+                            {% if result.status == 'pass' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> PASS
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle"></i> FAIL
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ (result.time_taken // 60) }}m {{ (result.time_taken % 60) }}s</td>
+                        <td>{{ result.submitted_at.strftime('%d %b %Y') }}</td>
+                        <td>
+                            <a href="{{ url_for('student.view_result', result_id=result.result_id) }}" 
+                               class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Summary Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-3">
+                <div class="stat-card stat-card-primary">
+                    <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+                    <div class="stat-value">{{ results|length }}</div>
+                    <div class="stat-label">Total Exams</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-card-success">
+                    <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value">
+                        {{ results|selectattr('status', 'equalto', 'pass')|list|length }}
+                    </div>
+                    <div class="stat-label">Passed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-card-danger">
+                    <div class="stat-icon"><i class="fas fa-times-circle"></i></div>
+                    <div class="stat-value">
+                        {{ results|selectattr('status', 'equalto', 'fail')|list|length }}
+                    </div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stat-card stat-card-info">
+                    <div class="stat-icon"><i class="fas fa-percentage"></i></div>
+                    <div class="stat-value">
+                        {% set avg = (results|sum(attribute='percentage') / results|length) if results else 0 %}
+                        {{ "%.1f"|format(avg) }}%
+                    </div>
+                    <div class="stat-label">Average Score</div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-clipboard-list"></i>
+            <h4>No Exam History</h4>
+            <p>You haven't taken any exams yet.</p>
+            <a href="{{ url_for('student.dashboard') }}" class="btn btn-primary">
+                <i class="fas fa-play"></i> Start Your First Exam
+            </a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
