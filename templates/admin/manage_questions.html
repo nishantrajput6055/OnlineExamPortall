@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Questions - {{ exam.exam_title }}{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .question-item {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border-left: 4px solid #0d6efd;
+    }
+    .option-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }
+    .option-item-display {
+        background: #f8f9fa;
+        padding: 0.8rem;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+    .correct-answer {
+        background: #d1f2eb !important;
+        border: 2px solid #0a6847;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="section-header">
+        <div>
+            <h2><i class="fas fa-question-circle"></i> {{ exam.exam_title }} - Questions</h2>
+            <p class="text-muted mb-0">Total Questions: {{ questions|length }}</p>
+        </div>
+        <div>
+            <a href="{{ url_for('admin.add_question', exam_id=exam.exam_id) }}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Question
+            </a>
+            <a href="{{ url_for('admin.manage_exams') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Exams
+            </a>
+        </div>
+    </div>
+
+    {% if questions %}
+        {% for question in questions %}
+        <div class="question-item">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <span class="badge bg-primary">Question {{ loop.index }}</span>
+                    <span class="badge bg-info">{{ question.marks }} mark(s)</span>
+                </div>
+                <div class="table-actions">
+                    <a href="{{ url_for('admin.edit_question', question_id=question.question_id) }}" 
+                       class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.delete_question', question_id=question.question_id) }}" 
+                          style="display: inline;">
+                        <button type="submit" class="btn btn-sm btn-danger delete-btn">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="question-text mb-3">
+                <strong>{{ question.question_text }}</strong>
+            </div>
+            
+            <div class="option-list">
+                <div class="option-item-display {% if question.correct_answer == 'A' %}correct-answer{% endif %}">
+                    <strong>A.</strong> {{ question.option_a }}
+                    {% if question.correct_answer == 'A' %}
+                        <i class="fas fa-check-circle text-success float-end"></i>
+                    {% endif %}
+                </div>
+                <div class="option-item-display {% if question.correct_answer == 'B' %}correct-answer{% endif %}">
+                    <strong>B.</strong> {{ question.option_b }}
+                    {% if question.correct_answer == 'B' %}
+                        <i class="fas fa-check-circle text-success float-end"></i>
+                    {% endif %}
+                </div>
+                <div class="option-item-display {% if question.correct_answer == 'C' %}correct-answer{% endif %}">
+                    <strong>C.</strong> {{ question.option_c }}
+                    {% if question.correct_answer == 'C' %}
+                        <i class="fas fa-check-circle text-success float-end"></i>
+                    {% endif %}
+                </div>
+                <div class="option-item-display {% if question.correct_answer == 'D' %}correct-answer{% endif %}">
+                    <strong>D.</strong> {{ question.option_d }}
+                    {% if question.correct_answer == 'D' %}
+                        <i class="fas fa-check-circle text-success float-end"></i>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-question-circle"></i>
+            <h4>No Questions Added Yet</h4>
+            <p>Click "Add Question" to create your first question.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
