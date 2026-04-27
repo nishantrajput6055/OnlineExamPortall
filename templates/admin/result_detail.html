@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Result Details - Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    .answer-correct {
+        background: #d1f2eb;
+        border-left: 4px solid #0a6847;
+    }
+    .answer-wrong {
+        background: #f8d7da;
+        border-left: 4px solid #842029;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header bg-{{ 'success' if result.status == 'pass' else 'danger' }} text-white">
+                    <h5><i class="fas fa-user"></i> Student Information</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ result.full_name }}</p>
+                    <p><strong>Email:</strong> {{ result.email }}</p>
+                    <p><strong>Exam:</strong> {{ result.exam_title }}</p>
+                    <p><strong>Duration:</strong> {{ result.duration_minutes }} minutes</p>
+                    <p><strong>Submitted:</strong> {{ result.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</p>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-{{ 'success' if result.status == 'pass' else 'danger' }} text-white">
+                    <h5><i class="fas fa-chart-pie"></i> Performance</h5>
+                </div>
+                <div class="card-body text-center">
+                    <h2 class="text-{{ 'success' if result.status == 'pass' else 'danger' }}">
+                        {{ result.score }}/{{ result.total_marks }}
+                    </h2>
+                    <h3>{{ "%.1f"|format(result.percentage) }}%</h3>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <h5>{{ correct_answers }}</h5>
+                            <small class="text-success">Correct</small>
+                        </div>
+                        <div class="col-6">
+                            <h5>{{ wrong_answers }}</h5>
+                            <small class="text-danger">Wrong</small>
+                        </div>
+                    </div>
+                    <hr>
+                    <span class="badge bg-{{ 'success' if result.status == 'pass' else 'danger' }} p-3">
+                        {% if result.status == 'pass' %}
+                            <i class="fas fa-check-circle"></i> PASSED
+                        {% else %}
+                            <i class="fas fa-times-circle"></i> FAILED
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <a href="{{ url_for('admin.view_results') }}" class="btn btn-secondary w-100">
+                <i class="fas fa-arrow-left"></i> Back to Results
+            </a>
+        </div>
+
+        <div class="col-lg-8">
+            <h4 class="mb-4"><i class="fas fa-list-alt"></i> Detailed Answers</h4>
+            
+            {% for answer in answers %}
+            <div class="card mb-3 answer-{{ 'correct' if answer.is_correct else 'wrong' }}">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6>
+                            <span class="badge bg-primary">Q{{ loop.index }}</span>
+                            {{ answer.marks }} mark(s)
+                        </h6>
+                        {% if answer.is_correct %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check"></i> Correct
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger">
+                                <i class="fas fa-times"></i> Wrong
+                            </span>
+                        {% endif %}
+                    </div>
+                    
+                    <p class="mb-3"><strong>{{ answer.question_text }}</strong></p>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 rounded {% if answer.selected_answer == 'A' %}{% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}{% elif answer.correct_answer == 'A' %}bg-success text-white{% endif %}">
+                                <strong>A.</strong> {{ answer.option_a }}
+                                {% if answer.selected_answer == 'A' %}
+                                    <i class="fas fa-hand-point-right float-end"></i>
+                                {% endif %}
+                                {% if answer.correct_answer == 'A' and not answer.is_correct %}
+                                    <i class="fas fa-check-circle float-end"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 rounded {% if answer.selected_answer == 'B' %}{% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}{% elif answer.correct_answer == 'B' %}bg-success text-white{% endif %}">
+                                <strong>B.</strong> {{ answer.option_b }}
+                                {% if answer.selected_answer == 'B' %}
+                                    <i class="fas fa-hand-point-right float-end"></i>
+                                {% endif %}
+                                {% if answer.correct_answer == 'B' and not answer.is_correct %}
+                                    <i class="fas fa-check-circle float-end"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 rounded {% if answer.selected_answer == 'C' %}{% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}{% elif answer.correct_answer == 'C' %}bg-success text-white{% endif %}">
+                                <strong>C.</strong> {{ answer.option_c }}
+                                {% if answer.selected_answer == 'C' %}
+                                    <i class="fas fa-hand-point-right float-end"></i>
+                                {% endif %}
+                                {% if answer.correct_answer == 'C' and not answer.is_correct %}
+                                    <i class="fas fa-check-circle float-end"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            <div class="p-2 rounded {% if answer.selected_answer == 'D' %}{% if answer.is_correct %}bg-success text-white{% else %}bg-danger text-white{% endif %}{% elif answer.correct_answer == 'D' %}bg-success text-white{% endif %}">
+                                <strong>D.</strong> {{ answer.option_d }}
+                                {% if answer.selected_answer == 'D' %}
+                                    <i class="fas fa-hand-point-right float-end"></i>
+                                {% endif %}
+                                {% if answer.correct_answer == 'D' and not answer.is_correct %}
+                                    <i class="fas fa-check-circle float-end"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if not answer.is_correct %}
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-info-circle"></i> 
+                            <strong>Your Answer:</strong> {{ answer.selected_answer }} | 
+                            <strong class="text-success">Correct Answer:</strong> {{ answer.correct_answer }}
+                        </small>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
