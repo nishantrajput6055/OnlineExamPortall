@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-user-circle" style="font-size: 100px; color: #6366F1;"></i>
+                    </div>
+                    <h3>{{ user.full_name }}</h3>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    <p><i class="fas fa-envelope"></i> {{ user.email }}</p>
+                    <hr>
+                    <p class="text-muted mb-1">
+                        <small>
+                            <i class="fas fa-calendar"></i> Joined: {{ user.created_at.strftime('%B %d, %Y') }}
+                        </small>
+                    </p>
+                    {% if user.last_login %}
+                    <p class="text-muted">
+                        <small>
+                            <i class="fas fa-clock"></i> Last Login: {{ user.last_login.strftime('%B %d, %Y') }}
+                        </small>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Performance Statistics -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5><i class="fas fa-chart-line"></i> Performance Statistics</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <h2 class="text-primary">{{ performance.total_exams or 0 }}</h2>
+                            <p class="text-muted mb-0">Total Exams</p>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <h2 class="text-success">{{ performance.passed_exams or 0 }}</h2>
+                            <p class="text-muted mb-0">Passed</p>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <h2 class="text-info">{{ "%.1f"|format(performance.avg_percentage or 0) }}%</h2>
+                            <p class="text-muted mb-0">Average Score</p>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <h2 class="text-warning">{{ "%.1f"|format(performance.best_percentage or 0) }}%</h2>
+                            <p class="text-muted mb-0">Best Score</p>
+                        </div>
+                    </div>
+
+                    {% if performance.total_exams and performance.total_exams > 0 %}
+                    <hr>
+                    <div class="mt-3">
+                        <h6>Pass Rate</h6>
+                        <div class="progress" style="height: 30px;">
+                            {% set pass_rate = (performance.passed_exams / performance.total_exams * 100) %}
+                            <div class="progress-bar bg-success" style="width: {{ pass_rate|int }}%">
+                                {{ "%.1f"|format(pass_rate) }}%
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Performance -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-history"></i> Recent Exam Performance</h5>
+                </div>
+                <div class="card-body">
+                    {% if exam_performance %}
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Exam</th>
+                                        <th>Score</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for exam in exam_performance %}
+                                    <tr>
+                                        <td>{{ exam.exam_title }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if exam.percentage >= 60 else 'warning' }}">
+                                                {{ "%.1f"|format(exam.percentage) }}%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if exam.status == 'pass' %}
+                                                <span class="badge bg-success">Pass</span>
+                                            {% else %}
+                                                <span class="badge bg-danger">Fail</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ exam.submitted_at.strftime('%d %b %Y') }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p class="text-center text-muted">No exam history available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
