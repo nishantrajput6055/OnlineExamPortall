@@ -9,7 +9,6 @@ app.config.from_object(Config)
 app.secret_key = Config.SECRET_KEY
 
 # Import routes
-# Import routes
 from routes import auth, admin, student, exam
 
 # Register blueprints
