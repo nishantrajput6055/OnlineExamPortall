@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam.exam_title }} - Take Exam{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/exam.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+    <!-- Timer and Header -->
+    <div class="exam-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h2><i class="fas fa-file-alt"></i> {{ exam.exam_title }}</h2>
+                    <p class="mb-0">Total Questions: {{ questions|length }} | Total Marks: {{ exam.total_marks }}</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="timer-box" id="timerBox">
+                        <i class="fas fa-clock"></i> 
+                        <span id="timer">{{ exam.duration_minutes }}:00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Form -->
+    <div class="container mt-4">
+        <form method="POST" action="{{ url_for('exam.submit_exam', exam_id=exam.exam_id) }}" id="examForm">
+            {% for question in questions %}
+            <div class="question-card" id="question-{{ loop.index }}">
+                <div class="question-header">
+                    <span class="question-number">Question {{ loop.index }}</span>
+                    <span class="question-marks">{{ question.marks }} mark(s)</span>
+                </div>
+                <div class="question-text">
+                    {{ question.question_text }}
+                </div>
+                <div class="options">
+                    <div class="form-check option-item">
+                        <input class="form-check-input" type="radio" 
+                               name="question_{{ question.question_id }}" 
+                               id="q{{ question.question_id }}_a" value="A" required>
+                        <label class="form-check-label" for="q{{ question.question_id }}_a">
+                            <span class="option-label">A.</span> {{ question.option_a }}
+                        </label>
+                    </div>
+                    <div class="form-check option-item">
+                        <input class="form-check-input" type="radio" 
+                               name="question_{{ question.question_id }}" 
+                               id="q{{ question.question_id }}_b" value="B">
+                        <label class="form-check-label" for="q{{ question.question_id }}_b">
+                            <span class="option-label">B.</span> {{ question.option_b }}
+                        </label>
+                    </div>
+                    <div class="form-check option-item">
+                        <input class="form-check-input" type="radio" 
+                               name="question_{{ question.question_id }}" 
+                               id="q{{ question.question_id }}_c" value="C">
+                        <label class="form-check-label" for="q{{ question.question_id }}_c">
+                            <span class="option-label">C.</span> {{ question.option_c }}
+                        </label>
+                    </div>
+                    <div class="form-check option-item">
+                        <input class="form-check-input" type="radio" 
+                               name="question_{{ question.question_id }}" 
+                               id="q{{ question.question_id }}_d" value="D">
+                        <label class="form-check-label" for="q{{ question.question_id }}_d">
+                            <span class="option-label">D.</span> {{ question.option_d }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Question Navigator -->
+            <div class="question-navigator">
+                <h5>Question Navigator</h5>
+                <div class="navigator-grid">
+                    {% for question in questions %}
+                    <button type="button" class="nav-btn" data-question="{{ loop.index }}">
+                        {{ loop.index }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center mt-4 mb-5">
+                <button type="submit" class="btn btn-success btn-lg" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Submit Exam
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Auto-submit warning modal -->
+<div class="modal fade" id="timeupModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Time's Up!</h5>
+            </div>
+            <div class="modal-body">
+                <p>The exam time has expired. Your answers will be automatically submitted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="autoSubmitBtn">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const examId = {{ exam.exam_id }};
+    const durationMinutes = {{ exam.duration_minutes }};
+    let timeRemaining = durationMinutes * 60; // Convert to seconds
+
+    // Timer function
+    function updateTimer() {
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        
+        const timerDisplay = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        document.getElementById('timer').textContent = timerDisplay;
+        
+        // Change color when time is running out
+        const timerBox = document.getElementById('timerBox');
+        if (timeRemaining <= 60) {
+            timerBox.classList.add('timer-critical');
+        } else if (timeRemaining <= 300) {
+            timerBox.classList.add('timer-warning');
+        }
+        
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            autoSubmitExam();
+        }
+        
+        timeRemaining--;
+    }
+
+    // Auto-submit when time expires
+    function autoSubmitExam() {
+        const modal = new bootstrap.Modal(document.getElementById('timeupModal'));
+        modal.show();
+        
+        document.getElementById('autoSubmitBtn').addEventListener('click', function() {
+            document.getElementById('examForm').submit();
+        });
+        
+        // Auto-submit after 3 seconds
+        setTimeout(() => {
+            document.getElementById('examForm').submit();
+        }, 3000);
+    }
+
+    // Start timer
+    const timerInterval = setInterval(updateTimer, 1000);
+    updateTimer();
+
+    // Question navigator
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const questionNum = this.getAttribute('data-question');
+            const questionCard = document.getElementById(`question-${questionNum}`);
+            questionCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+    });
+
+    // Update navigator button status
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            updateNavigatorStatus();
+        });
+    });
+
+    function updateNavigatorStatus() {
+        const questions = {{ questions|length }};
+        for (let i = 1; i <= questions; i++) {
+            const radios = document.querySelectorAll(`input[name^="question_"]:checked`);
+            const navBtn = document.querySelector(`.nav-btn[data-question="${i}"]`);
+            
+            // Check if this question is answered
+            let answered = false;
+            radios.forEach(radio => {
+                const questionCard = radio.closest('.question-card');
+                const cardId = questionCard.id;
+                if (cardId === `question-${i}`) {
+                    answered = true;
+                }
+            });
+            
+            if (answered) {
+                navBtn.classList.add('answered');
+            }
+        }
+    }
+
+    // Confirm before leaving page
+    window.addEventListener('beforeunload', function(e) {
+        e.preventDefault();
+        e.returnValue = '';
+    });
+
+    // Submit confirmation
+    document.getElementById('submitBtn').addEventListener('click', function(e) {
+        const totalQuestions = {{ questions|length }};
+        const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+        
+        if (answeredQuestions < totalQuestions) {
+            if (!confirm(`You have answered ${answeredQuestions} out of ${totalQuestions} questions. Do you want to submit?`)) {
+                e.preventDefault();
+                return false;
+            }
+        } else {
+            if (!confirm('Are you sure you want to submit the exam?')) {
+                e.preventDefault();
+                return false;
+            }
+        }
+        
+        // Remove beforeunload event
+        window.removeEventListener('beforeunload', function() {});
+    });
+</script>
+{% endblock %}
