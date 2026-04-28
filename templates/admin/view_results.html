@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}View Results - Admin{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="section-header">
+        <h2><i class="fas fa-chart-bar"></i> All Exam Results</h2>
+        <button onclick="exportTableToCSV('resultsTable', 'exam_results.csv')" 
+                class="btn btn-success">
+            <i class="fas fa-download"></i> Export to CSV
+        </button>
+    </div>
+
+    {% if results %}
+        <div class="table-responsive">
+            <table class="table admin-table" id="resultsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Exam</th>
+                        <th>Score</th>
+                        <th>Percentage</th>
+                        <th>Status</th>
+                        <th>Time Taken</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for result in results %}
+                    <tr>
+                        <td>{{ result.result_id }}</td>
+                        <td><strong>{{ result.full_name }}</strong></td>
+                        <td>{{ result.email }}</td>
+                        <td>{{ result.exam_title }}</td>
+                        <td>{{ result.score }}/{{ result.total_marks }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if result.percentage >= 75 else ('warning' if result.percentage >= 50 else 'danger') }}">
+                                {{ "%.1f"|format(result.percentage) }}%
+                            </span>
+                        </td>
+                        <td>
+                            {% if result.status == 'pass' %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check-circle"></i> PASS
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger">
+                                    <i class="fas fa-times-circle"></i> FAIL
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>{{ (result.time_taken // 60) }}m {{ (result.time_taken % 60) }}s</td>
+                        <td>{{ result.submitted_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.view_result_detail', result_id=result.result_id) }}" 
+                               class="btn btn-sm btn-primary" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <i class="fas fa-chart-line"></i>
+            <h4>No Results Yet</h4>
+            <p>Results will appear here once students take exams.</p>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function exportTableToCSV(tableId, filename) {
+    const table = document.getElementById(tableId);
+    let csv = [];
+    const rows = table.querySelectorAll('tr');
+    
+    for (let i = 0; i < rows.length; i++) {
+        const row = [], cols = rows[i].querySelectorAll('td, th');
+        
+        for (let j = 0; j < cols.length - 1; j++) { // Exclude last column (Actions)
+            let data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+            data = data.replace(/"/g, '""');
+            row.push('"' + data + '"');
+        }
+        
+        csv.push(row.join(','));
+    }
+    
+    const csvString = csv.join('\n');
+    const link = document.createElement('a');
+    link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvString);
+    link.download = filename;
+    link.click();
+}
+</script>
+{% endblock %}
